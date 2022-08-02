@@ -17,7 +17,41 @@ li s5 0             #lunghezza blocKey
 li s6 0             #lunghezza mycypher
 
 jal MYPLAINTEXT_SIZE
-add s4 zero a0      #salvo il valore di ritorno contenuto in a0
+jal BLOCKEY_SIZE
+jal MYCYPHER_SIZE
+
+li t0 0              #contatore ciclo
+jal TO_STRING
+lb t1 0(s3)      #primo byte (lettera) ovvero primo algoritmo
+WHILE_LOOP:
+    beq t0 s6 end_while_loop   #se il contatore arriva al numero di caratteri termine il ciclo
+    li t2 65
+    beq t1 t2 ALGORITHM_A      #Se t1 = A (65) applico algoritmo A
+    li t2 66
+    beq t1 t2 ALGORITHM_B      #Se t1 = B (66) applico algoritmo B
+    li t2 67
+    beq t1 t2 ALGORITHM_C      #Se t1 = C (67) applico algoritmo C
+    li t2 68
+    beq t1 t2 ALGORITHM_D      #Se t1 = D (68) applico algoritmo D
+    li t2 69
+    beq t1 t2 ALGORITHM_E      #Se t1 = E (69) applico algoritmo E
+end_while_loop:
+    j WHILE_LOOP
+    
+ALGORITHM_A:
+    j END
+    
+ALGORITHM_B:
+    j END
+    
+ALGORITHM_C:
+    j END
+    
+ALGORITHM_D:
+    j END
+    
+ALGORITHM_E:
+    j END
 
 #Procedura che calcola il numero di caratteri da cifrare ------------------------------
 MYPLAINTEXT_SIZE:
@@ -31,7 +65,7 @@ myplaintext_while_loop:
     addi s1 s1 1       #passo al carattere successivo
     j myplaintext_while_loop
 myplaintext_end_while_loop:
-    add a0 zero t1     #salvo la lunghezza nel registro per il ritorno da procedure
+    add s4 zero t1     #salvo la lunghezza nel registro per il ritorno da procedure
     lw s1 0(sp)        #reset di s1
     addi sp sp 4       #puntatore in testa alla pila
     jr ra
@@ -49,6 +83,7 @@ blockey_while_loop:
 blockey_end_while_loop:
     lw s2 0(sp)        #reset di s2
     addi sp sp 4       #ripristino puntatore alla testa
+    jr ra
     
 #Procedura che calcola il numero di caratteri di mycypher -------------------------
 MYCYPHER_SIZE:
@@ -63,4 +98,17 @@ mycypher_while_loop:
 mycypher_end_while_loop:
     lw s3 0(sp)        #reset di s3
     addi sp sp 4       #ripristino puntatore alla testa
- 
+    jr ra 
+    
+#Procedura che stampa la stringa
+TO_STRING:
+    la a0 myplaintext
+    li a7 4
+    ecall
+    li a0 10					#ecall newLine
+	li a7 11
+	ecall
+	jr ra
+
+END:
+    ecall
