@@ -22,9 +22,9 @@ jal MYCYPHER_SIZE
 
 li t0 0              #contatore ciclo
 jal TO_STRING
-lb t1 0(s3)      #primo byte (lettera) ovvero primo algoritmo
 WHILE_LOOP:
     beq t0 s6 end_while_loop   #se il contatore arriva al numero di caratteri termine il ciclo
+    lb t1 0(s3)      #primo byte (lettera) ovvero primo algoritmo
     li t2 65
     beq t1 t2 ALGORITHM_A      #Se t1 = A (65) applico algoritmo A
     li t2 66
@@ -39,19 +39,57 @@ end_while_loop:
     j WHILE_LOOP
     
 ALGORITHM_A:
-    j END
-    
+    addi sp sp -4				# Si alloca spazio nella pila per salvare l'indice del ciclo
+	sw t0 0(sp)					# Si salva l'indice nella pila 
+    jal CIFRARIO_CESARE
+    lw t0 0(sp)					# Si ripristina il valore dell'indice
+	addi sp sp 4				# Si ripristina il valore del puntatore della pila
+	addi t0 t0 1				# Indice++
+	addi s3 s3 1				# Carattere successivo
+    j WHILE_LOOP
 ALGORITHM_B:
-    j END
+    addi sp sp -4				# Si alloca spazio nella pila per salvare l'indice del ciclo
+	sw t0 0(sp)					# Si salva l'indice nella pila
+
+    lw t0 0(sp)					# Si ripristina il valore dell'indice
+	addi sp sp 4				# Si ripristina il valore del puntatore della pila
+	addi t0 t0 1				# Indice++
+	addi s3 s3 1				# Carattere successivo 
+    j WHILE_LOOP
     
 ALGORITHM_C:
-    j END
+    addi sp sp -4				# Si alloca spazio nella pila per salvare l'indice del ciclo
+	sw t0 0(sp)					# Si salva l'indice nella pila
+
+    lw t0 0(sp)					# Si ripristina il valore dell'indice
+	addi sp sp 4				# Si ripristina il valore del puntatore della pila
+	addi t0 t0 1				# Indice++
+	addi s3 s3 1				# Carattere successivo 
+    j WHILE_LOOP
     
 ALGORITHM_D:
-    j END
+    addi sp sp -4				# Si alloca spazio nella pila per salvare l'indice del ciclo
+	sw t0 0(sp)					# Si salva l'indice nella pila 
+
+    lw t0 0(sp)					# Si ripristina il valore dell'indice
+	addi sp sp 4				# Si ripristina il valore del puntatore della pila
+	addi t0 t0 1				# Indice++
+	addi s3 s3 1				# Carattere successivo
+    j WHILE_LOOP
     
 ALGORITHM_E:
-    j END
+    addi sp sp -4				# Si alloca spazio nella pila per salvare l'indice del ciclo
+	sw t0 0(sp)					# Si salva l'indice nella pila 
+
+    lw t0 0(sp)					# Si ripristina il valore dell'indice
+	addi sp sp 4				# Si ripristina il valore del puntatore della pila
+	addi t0 t0 1				# Indice++
+	addi s3 s3 1				# Carattere successivo
+    j WHILE_LOOP
+    
+#Procedura che calcola la crittografia tramite il cifrario di Cesare ----------------------
+CIFRARIO_CESARE:
+    
 
 #Procedura che calcola il numero di caratteri da cifrare ------------------------------
 MYPLAINTEXT_SIZE:
@@ -110,5 +148,15 @@ TO_STRING:
 	ecall
 	jr ra
 
+#Procedura che stampa la stringa criptata -------------------------------------------------- TODO
+TO_STRING_CYPHER:
+    la a0 mycypher
+    li a7 4
+    ecall
+    li a0 10
+    li a7 11
+    ecall
+    jr ra
+    
 END:
     ecall
