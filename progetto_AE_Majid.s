@@ -1,9 +1,9 @@
 .data 
 myplaintext: .string "Abc' abc!"
 blocKey: .string "OLE"
-mycypher: .string "E"
+mycypher: .string "AE"
 cyphertext: .string ""
-sostK: .word -5
+sostK: .word 1
 
 .text
 #MAIN PROCEDURE --------------------------------
@@ -44,15 +44,15 @@ D_WHILE_LOOP:
     beq t0 s6 END_DECRYPT_WHILE_LOOP
     lb t1 -1(s3)			   # Si carica s3-1, contiene la fine dell'indirizzo di mycypher
     li t2 65
-    beq t1 t2 DECRYPT_ALGORITHM_A      # Se t1 = A (65) applico algoritmo A
+    beq t1 t2 D_ALGORITHM_A      # Se t1 = A (65) applico algoritmo A
     li t2 66
-    beq t1 t2 DECRYPT_ALGORITHM_B      # Se t1 = B (66) applico algoritmo B
+   # beq t1 t2 D_ALGORITHM_B      # Se t1 = B (66) applico algoritmo B
     li t2 67
-    beq t1 t2 DECRYPT_ALGORITHM_C      # Se t1 = C (67) applico algoritmo C
+  #  beq t1 t2 D_ALGORITHM_C      # Se t1 = C (67) applico algoritmo C
     li t2 68
-    beq t1 t2 DECRYPT_ALGORITHM_D      # Se t1 = D (68) applico algoritmo D
+  #  beq t1 t2 D_ALGORITHM_D      # Se t1 = D (68) applico algoritmo D
     li t2 69
-    beq t1 t2 ALGORITHM_E              # Se t1 = E (69) applico algoritmo E
+    beq t1 t2 D_ALGORITHM_E              # Se t1 = E (69) applico algoritmo E
 END_DECRYPT_WHILE_LOOP:
     j END
     
@@ -110,14 +110,87 @@ ALGORITHM_E:
 	addi s3 s3 1				# Carattere successivo
     jal TO_STRING_CYPHER
     j WHILE_LOOP
+    
+D_ALGORITHM_A:
+    addi sp sp -4				# Si alloca spazio nella pila per salvare l'indice del ciclo
+	sw t0 0(sp)					# Si salva l'indice nella pila 
+    jal DECRYPT_ALGORITHM_A
+    lw t0 0(sp)					# Si ripristina il valore dell'indice
+	addi sp sp 4				# Si ripristina il valore del puntatore della pila
+	addi t0 t0 1				# Indice++
+	addi s3 s3 -1				# Carattere precedente
+    jal TO_STRING_CYPHER
+    j D_WHILE_LOOP
+
+D_ALGORITHM_E:
+     addi sp sp -4				# Si alloca spazio nella pila per salvare l'indice del ciclo
+	sw t0 0(sp)					# Si salva l'indice nella pila 
+    jal INVERSIONE
+    lw t0 0(sp)					# Si ripristina il valore dell'indice
+	addi sp sp 4				# Si ripristina il valore del puntatore della pila
+	addi t0 t0 1				# Indice++
+	addi s3 s3 -1				# Carattere precedente
+    jal TO_STRING_CYPHER
+    j D_WHILE_LOOP
 
 DECRYPT_ALGORITHM_A:
-    
+    addi sp sp -8			    # Si alloca spazio nella pila per salvare il valore di della chiave contenuta in s1 
+	sw s1 0(sp)				    # Salvo s1 nella pila (chiave da criptare)
+	sw ra 4(sp)
+	li t1 0				        # Contatore del While
+	li t3 26				    # Valore di calcolo del modulo [f(x) % 26 (Mod 26)]
+while_decrypt_cifrario_cesare:
+    lb t0 0(s1)				     # Si carica in t0 il primo carattere da cifrare
+	beq t1 s4 decrypt_end_while_cifrario # Se t1 = s4 esco dal ciclo
+	li t2 64				     # @ = 64 ASCII (Carattere che precede 'A')
+	bgt t0 t2 decrypt_uppercase_check  	 # Se maggiore di 64 controllo che sia maiuscola o minuscola
+decrypt_end_while_cifrario:
+    lw s1 0(sp)				    # Si ripristina s1 (indirizzo alla testa del messaggio da criptare) nella pila
+	lw ra 4(sp)				    # Si ripristina il valore di ra
+	addi sp sp 8			    # Si ripristina il puntatore della pila
+	jr ra				
+decrypt_uppercase_check:
+    li t2 90                    # ( Z ) nella tabella ASCII
+	bgt t0 t2 decrypt_lowercase_check	# Se maggiore di 90 controllo che sia minuscola o un altro carattere
+    li a0 65
+	jal DECRYPT_SHIFT_CESARE
+    j while_decrypt_cifrario_cesare
+decrypt_lowercase_check:
+    li t2 97
+    blt t0 t2 decrypt_other_char        # Se fra 90 e 96 rimane invariato (Caratteri speciali)
+	li t2 122
+	bgt t0 t2 decrypt_other_char		# Se maggiore di 122 (z ASCII) rimane invariato
+    li a0 97
+    jal DECRYPT_SHIFT_CESARE
+	j while_decrypt_cifrario_cesare
+decrypt_other_char:
+    addi t1 t1 1			    # Si incrementa il contatore del ciclo
+	addi s1 s1 1			    # Si aumenta l'indirizzo di s1 cosi da poter leggere il carattere seguente
+	j while_decrypt_cifrario_cesare
+DECRYPT_SHIFT_CESARE:
+    sub t6 t0 a0			    # Altrimenti vuol dire che e' un char maiuscolo quindi si esegue l'operazione per shiftare
+	sub t6 t6 a2				# di 'sostK' caratteri --->
+	rem t6 t6 t3				# ---> cyptherChar = [(currentChar - 65) + sostK]%26 + 65
+	blt t6 zero decrypt_negative_module
+	add t6 t6 a0
+	sb t6 0(s1)				# Si salva il carattere criptato in s2 (indirizzo della stringa contenente il messaggio criptato)
+	addi t1 t1 1			# Si incrementa il contatore del ciclo
+	addi s1 s1 1			# Si aumenta l'indirizzo di s1 cos? da poter leggere il carattere seguente
+	jr ra
+decrypt_negative_module:
+	addi t6 t6 26
+	add t6 t6 a0
+	sb t6 0(s1)				# Si salva il carattere criptato in s2 (indirizzo della stringa contenente il messaggio criptato)
+	addi t1 t1 1			# Si incrementa il contatore del ciclo
+	addi s1 s1 1			# Si aumenta l'indirizzo di s1 cos? da poter leggere il carattere seguente
+	jr ra
+
 DECRYPT_ALGORITHM_B:
-    
+    j END
 DECRYPT_ALGORITHM_C:
-    
+    j END
 DECRYPT_ALGORITHM_D:
+    j END
     
 #Procedura che calcola la crittografia tramite il cifrario di Cesare ----------------------
 CIFRARIO_CESARE:
@@ -176,6 +249,10 @@ negative_module:
 
 # Procedura che calcola la crittografia tramite una chiave a blocchi (sostK)
 CIFRARIO_BLOCCHI:
+    addi sp sp -8			# Si alloca spazio nella pila per salvare il valore di s1 e s2 
+	sw s1 0(sp)				# Indirizzo di s1 nella pila
+	sw s2 4(sp)				# Indirizzo di s2 nella pila
+    li t0 0                 # Contatore
     
 
 # Procedura che calcola la crittografia tramite inversione della stringa 
