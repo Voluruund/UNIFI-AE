@@ -1,7 +1,7 @@
 .data 
 myplaintext: .string "Abc' abc!"
 blocKey: .string "OLE"
-mycypher: .string "EA"
+mycypher: .string "E"
 cyphertext: .string ""
 sostK: .word -5
 
@@ -23,6 +23,7 @@ jal MYCYPHER_SIZE
 
 li t0 0              # Contatore ciclo
 jal TO_STRING
+
 WHILE_LOOP:
     beq t0 s6 end_while_loop   # Se il contatore arriva al numero di caratteri termine il ciclo
     lb t1 0(s3)                # Primo byte (lettera) ovvero primo algoritmo
@@ -37,10 +38,23 @@ WHILE_LOOP:
     li t2 69
     beq t1 t2 ALGORITHM_E      # Se t1 = E (69) applico algoritmo E
 end_while_loop:
-    j DECRYPT_WHILE_LOOP
-  
-DECRYPT_WHILE_LOOP:
-    li t0 0                   # Contatore del ciclo
+    li t0 0                    # Contatore del ciclo
+    
+D_WHILE_LOOP:
+    beq t0 s6 END_DECRYPT_WHILE_LOOP
+    lb t1 -1(s3)			   # Si carica s3-1, contiene la fine dell'indirizzo di mycypher
+    li t2 65
+    beq t1 t2 DECRYPT_ALGORITHM_A      # Se t1 = A (65) applico algoritmo A
+    li t2 66
+    beq t1 t2 DECRYPT_ALGORITHM_B      # Se t1 = B (66) applico algoritmo B
+    li t2 67
+    beq t1 t2 DECRYPT_ALGORITHM_C      # Se t1 = C (67) applico algoritmo C
+    li t2 68
+    beq t1 t2 DECRYPT_ALGORITHM_D      # Se t1 = D (68) applico algoritmo D
+    li t2 69
+    beq t1 t2 ALGORITHM_E              # Se t1 = E (69) applico algoritmo E
+END_DECRYPT_WHILE_LOOP:
+    j END
     
 ALGORITHM_A:
     addi sp sp -4				# Si alloca spazio nella pila per salvare l'indice del ciclo
@@ -52,6 +66,7 @@ ALGORITHM_A:
 	addi s3 s3 1				# Carattere successivo
     jal TO_STRING_CYPHER
     j WHILE_LOOP
+    
 ALGORITHM_B:
     addi sp sp -4				# Si alloca spazio nella pila per salvare l'indice del ciclo
 	sw t0 0(sp)					# Si salva l'indice nella pila
@@ -95,6 +110,14 @@ ALGORITHM_E:
 	addi s3 s3 1				# Carattere successivo
     jal TO_STRING_CYPHER
     j WHILE_LOOP
+
+DECRYPT_ALGORITHM_A:
+    
+DECRYPT_ALGORITHM_B:
+    
+DECRYPT_ALGORITHM_C:
+    
+DECRYPT_ALGORITHM_D:
     
 #Procedura che calcola la crittografia tramite il cifrario di Cesare ----------------------
 CIFRARIO_CESARE:
