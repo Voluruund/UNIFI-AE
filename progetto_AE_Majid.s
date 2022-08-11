@@ -1,7 +1,7 @@
 .data 
 myplaintext: .string "Abc' abc!"
 blocKey: .string "OLE"
-mycypher: .string "AE"
+mycypher: .string "EA"
 cyphertext: .string ""
 sostK: .word 1
 
@@ -123,7 +123,7 @@ D_ALGORITHM_A:
     j D_WHILE_LOOP
 
 D_ALGORITHM_E:
-     addi sp sp -4				# Si alloca spazio nella pila per salvare l'indice del ciclo
+    addi sp sp -4				# Si alloca spazio nella pila per salvare l'indice del ciclo
 	sw t0 0(sp)					# Si salva l'indice nella pila 
     jal INVERSIONE
     lw t0 0(sp)					# Si ripristina il valore dell'indice
@@ -144,6 +144,11 @@ while_decrypt_cifrario_cesare:
 	beq t1 s4 decrypt_end_while_cifrario # Se t1 = s4 esco dal ciclo
 	li t2 64				     # @ = 64 ASCII (Carattere che precede 'A')
 	bgt t0 t2 decrypt_uppercase_check  	 # Se maggiore di 64 controllo che sia maiuscola o minuscola
+decrypt_other_char:
+    sb t0 0(s1)				   
+    addi t1 t1 1			    # Si incrementa il contatore del ciclo
+	addi s1 s1 1			    # Si aumenta l'indirizzo di s1 cosi da poter leggere il carattere seguente
+	j while_decrypt_cifrario_cesare
 decrypt_end_while_cifrario:
     lw s1 0(sp)				    # Si ripristina s1 (indirizzo alla testa del messaggio da criptare) nella pila
 	lw ra 4(sp)				    # Si ripristina il valore di ra
@@ -162,10 +167,6 @@ decrypt_lowercase_check:
 	bgt t0 t2 decrypt_other_char		# Se maggiore di 122 (z ASCII) rimane invariato
     li a0 97
     jal DECRYPT_SHIFT_CESARE
-	j while_decrypt_cifrario_cesare
-decrypt_other_char:
-    addi t1 t1 1			    # Si incrementa il contatore del ciclo
-	addi s1 s1 1			    # Si aumenta l'indirizzo di s1 cosi da poter leggere il carattere seguente
 	j while_decrypt_cifrario_cesare
 DECRYPT_SHIFT_CESARE:
     sub t6 t0 a0			    # Altrimenti vuol dire che e' un char maiuscolo quindi si esegue l'operazione per shiftare
