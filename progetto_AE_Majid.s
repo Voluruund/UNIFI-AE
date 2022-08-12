@@ -1,9 +1,9 @@
 .data 
-myplaintext: .string "Appo"
+myplaintext: .string "Oabc oabc!"
 blocKey: .string "OLE"
-mycypher: .string "B"
+mycypher: .string "ABE"
 cyphertext: .string ""
-sostK: .word -6
+sostK: .word -4
 
 .text
 #MAIN PROCEDURE --------------------------------
@@ -46,7 +46,7 @@ D_WHILE_LOOP:
     li t2 65
     beq t1 t2 D_ALGORITHM_A      # Se t1 = A (65) applico algoritmo A
     li t2 66
-   # beq t1 t2 D_ALGORITHM_B      # Se t1 = B (66) applico algoritmo B
+    beq t1 t2 D_ALGORITHM_B      # Se t1 = B (66) applico algoritmo B
     li t2 67
   #  beq t1 t2 D_ALGORITHM_C      # Se t1 = C (67) applico algoritmo C
     li t2 68
@@ -121,6 +121,17 @@ D_ALGORITHM_A:
 	addi s3 s3 -1				# Carattere precedente
     jal TO_STRING_CYPHER
     j D_WHILE_LOOP
+    
+D_ALGORITHM_B:
+    addi sp sp -4				# Si alloca spazio nella pila per salvare l'indice del ciclo
+	sw t0 0(sp)					# Si salva l'indice nella pila 
+    jal DECRYPT_ALGORITHM_B
+    lw t0 0(sp)					# Si ripristina il valore dell'indice
+	addi sp sp 4				# Si ripristina il valore del puntatore della pila
+	addi t0 t0 1				# Indice++
+	addi s3 s3 -1				# Carattere precedente
+    jal TO_STRING_CYPHER
+    j D_WHILE_LOOP
 
 D_ALGORITHM_E:
     addi sp sp -4				# Si alloca spazio nella pila per salvare l'indice del ciclo
@@ -187,7 +198,38 @@ decrypt_negative_module:
 	jr ra
 
 DECRYPT_ALGORITHM_B:
-    j END
+    addi sp sp -8			# Si alloca spazio nella pila per salvare il valore di s1 e s2 
+	sw s1 0(sp)				# Indirizzo di s1 nella pila
+	sw s2 4(sp)				# Indirizzo di s2 nella pila
+    li t0 0                 # Contatore
+    li t3 96                # Valore modulo = 96
+    li t4 0                 # Contatore blocKey
+decrypt_check_while_cifrario_blocchi:
+    beq t4 s5 decrypt_load_blockey_address    # Se contatore = #blocKey salto
+decrypt_while_cifrario_blocchi:
+    lb t1 0(s1)             # Carico in t1 il primo carattere della stringa in chiaro
+    lb t2 0(s2)             # Carico in t2 il primo carattere di blocKey
+    beq t0 s4 decrypt_end_while_cifrario_blocchi
+    sub t5 t1 t2
+    addi t5 t5 96           # Sommo il modulo 96
+    rem t5 t5 t3            # Modulo 96
+    addi t5 t5 32           # Sommo 32
+    sb t5 0(s1)             # Salvo il carattere criptato
+    addi s1 s1 1            # Carattere in chiaro successivo
+    addi s2 s2 1            # Carattere blocKey successivo
+    addi t0 t0 1            # Contatore++
+    addi t4 t4 1            # Contatore blocKey++
+    j decrypt_check_while_cifrario_blocchi
+decrypt_load_blockey_address:			
+	lw s2 4(sp)             # Ritorno all'indirizzo di partenza
+    li t4 0                 # Reset contatore		
+	j decrypt_check_while_cifrario_blocchi	
+ decrypt_end_while_cifrario_blocchi:
+    lw s1 0(sp)             # Reset indirizzo di s1
+    lw s2 4(sp)             # Reset indirizzo s2
+    addi sp sp 8
+    jr ra
+    
 DECRYPT_ALGORITHM_C:
     j END
 DECRYPT_ALGORITHM_D:
@@ -263,7 +305,14 @@ while_cifrario_blocchi:
     lb t2 0(s2)             # Carico in t2 il primo carattere di blocKey
     beq t0 s4 end_while_cifrario_blocchi
     add t5 t1 t2
-    #addi t5 t5 -64
+    
+    
+    #TORNA MA NON SO PERCHE' -------------------------------
+    addi t5 t5 -64			# cryptedChar = [(currentChar - 32) + (currentCharKey - 32)]%96 + 32;
+    
+    
+    
+    
     rem t5 t5 t3            # Modulo 96
     addi t5 t5 32           # Sommo 32
     sb t5 0(s1)             # Salvo il carattere criptato
