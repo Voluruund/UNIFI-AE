@@ -1,9 +1,9 @@
 .data 
 myplaintext: .string "Abc' abc!"
 blocKey: .string "OLE"
-mycypher: .string "EA"
+mycypher: .string "EAAAE"
 cyphertext: .string ""
-sostK: .word 1
+sostK: .word -6
 
 .text
 #MAIN PROCEDURE --------------------------------
