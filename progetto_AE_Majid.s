@@ -1,7 +1,8 @@
 .data 
-myplaintext: .string "Oabc oabc!"
-blocKey: .string "OLE"
-mycypher: .string "ABE"
+myplaintext: .string "Mi piaccion0 'L3 pesche!"
+#L grande errore
+blocKey: .string "A0 o0p!)"
+mycypher: .string "BABAA"
 cyphertext: .string ""
 sostK: .word -4
 
@@ -211,9 +212,15 @@ decrypt_while_cifrario_blocchi:
     lb t2 0(s2)             # Carico in t2 il primo carattere di blocKey
     beq t0 s4 decrypt_end_while_cifrario_blocchi
     sub t5 t1 t2
-    addi t5 t5 96           # Sommo il modulo 96
-    rem t5 t5 t3            # Modulo 96
-    addi t5 t5 32           # Sommo 32
+    addi t5 t5 -32           # sottraggo 32 prima del modulo
+    blt t5 zero negative_module_blocchi
+apply_module_blocchi:
+    rem t5 t5 t3             # Modulo 96 
+    li t6 32                 # controllo che il carattere sia superiore a 32
+    #controlla i caratteri che decifrati finiscono sotto il valore 32
+    bge t5 t6 continue_decrypt_blocchi
+    add t5 t5 t3             # Sommo 96
+continue_decrypt_blocchi: 
     sb t5 0(s1)             # Salvo il carattere criptato
     addi s1 s1 1            # Carattere in chiaro successivo
     addi s2 s2 1            # Carattere blocKey successivo
@@ -223,7 +230,10 @@ decrypt_while_cifrario_blocchi:
 decrypt_load_blockey_address:			
 	lw s2 4(sp)             # Ritorno all'indirizzo di partenza
     li t4 0                 # Reset contatore		
-	j decrypt_check_while_cifrario_blocchi	
+	j decrypt_check_while_cifrario_blocchi
+negative_module_blocchi:
+    addi t5 t5 96
+    j apply_module_blocchi
  decrypt_end_while_cifrario_blocchi:
     lw s1 0(sp)             # Reset indirizzo di s1
     lw s2 4(sp)             # Reset indirizzo s2
@@ -304,15 +314,7 @@ while_cifrario_blocchi:
     lb t1 0(s1)             # Carico in t1 il primo carattere della stringa in chiaro
     lb t2 0(s2)             # Carico in t2 il primo carattere di blocKey
     beq t0 s4 end_while_cifrario_blocchi
-    add t5 t1 t2
-    
-    
-    #TORNA MA NON SO PERCHE' -------------------------------
-    addi t5 t5 -64			# cryptedChar = [(currentChar - 32) + (currentCharKey - 32)]%96 + 32;
-    
-    
-    
-    
+    add t5 t1 t2            # (carattereDaCifrare + carattereCifra)
     rem t5 t5 t3            # Modulo 96
     addi t5 t5 32           # Sommo 32
     sb t5 0(s1)             # Salvo il carattere criptato
