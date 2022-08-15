@@ -133,6 +133,19 @@ D_ALGORITHM_B:
 	addi s3 s3 -1				# Carattere precedente
     jal TO_STRING_CYPHER
     j D_WHILE_LOOP
+    
+D_ALGORITHM_C:
+    
+D_ALGORITHM_D:
+    addi sp sp -4				# Si alloca spazio nella pila per salvare l'indice del ciclo
+	sw t0 0(sp)					# Si salva l'indice nella pila 
+    jal DIZIONARIO
+    lw t0 0(sp)					# Si ripristina il valore dell'indice
+	addi sp sp 4				# Si ripristina il valore del puntatore della pila
+	addi t0 t0 1				# Indice++
+	addi s3 s3 -1				# Carattere precedente
+    jal TO_STRING_CYPHER
+    j D_WHILE_LOOP
 
 D_ALGORITHM_E:
     addi sp sp -4				# Si alloca spazio nella pila per salvare l'indice del ciclo
@@ -335,7 +348,10 @@ negative_module_blocchi:
     lw s2 4(sp)             # Reset indirizzo s2
     addi sp sp 8
     jr ra
-
+    
+# Procedura che calcola a crittografia tramite l'algoritmo dizionario -----------------------------------------------
+DIZIONARIO:
+    
 # Procedura che calcola la crittografia tramite inversione della stringa -------------------------------------------------
 INVERSIONE:
     addi sp sp -8                # Si alloca lo spazio nella pila per salvare i valori di s1
