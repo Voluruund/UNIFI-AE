@@ -1,8 +1,8 @@
 .data 
-#myplaintext: .string "Lezz0 Unt0 P3nzola! Sg1occioLa'"
-myplaintext: .string "0123456789"
+myplaintext: .string "Lezz0 Unt0 P3nzola! Sg1occioLa'"
+#myplaintext: .string "A"
 blocKey: .string "A0 o0p!)"
-mycypher: .string "ABBAEA"
+mycypher: .string "ABDE"
 cyphertext: .string ""
 sostK: .word -15
 
@@ -239,7 +239,7 @@ decrypt_end_while_cifrario:
 	addi sp sp 8			    # Si ripristina il puntatore della pila
 	jr ra				
 decrypt_uppercase_check:
-    li t2 90                    # ( Z ) nella tabella ASCII
+    li t2 90                            # ( Z ) nella tabella ASCII
 	bgt t0 t2 decrypt_lowercase_check	# Se maggiore di 90 controllo che sia minuscola o un altro carattere
     li a0 65
 	jal DECRYPT_SHIFT_CESARE
@@ -347,15 +347,13 @@ negative_module_blocchi:
     addi sp sp 8
     jr ra
 
-
-# DA FINIRE
 # Procedura che calcola a crittografia tramite l'algoritmo dizionario -----------------------------------------------
 DIZIONARIO:
     addi sp sp -4                            # Alloco spazio nella pila per salvare s1
     sw s1 0(sp)                              # Si salva il valore di s1 per poterlo ristabilire alla fine della procedura
     li t0 0                                  # Contatore del ciclo
 while_dictionary:
-    lb t1 0(sp)                              # Carico il carattere da cifrare
+    lb t1 0(s1)                              # Carico il carattere da cifrare
     beq t0 s4 end_while_dictionary           # Se t0 = lunghezzaMessaggio allora termino il ciclo
     li t2 65				                 # A = 65 ASCII
 	bge t1 t2 uppercase_check_dictionary  	 # Se maggiore di 64 controllo che sia maiuscola o minuscola
@@ -371,11 +369,31 @@ num_shift_dictionary:
     sub t3 t2 t1                # s1 = noveASCII - numPartenza
     addi t3 t3 48               # riporto ai numeri ASCII
     sb t3 0(s1)
-    j other_char_dictionary
-    
-    
+    addi t0 t0 1			    # Si incrementa il contatore del ciclo
+	addi s1 s1 1			    # Si aumenta l'indirizzo di s1 cosi da poter leggere il carattere seguente
+    j while_dictionary
 uppercase_check_dictionary:
-    
+    li t2 91                    # Carattere dopo la Z ASCII
+    bge t1 t2 lowercase_check_dictionary
+    li t2 90                    # Z = 90 (ASCII)
+    sub t3 t2 t1                # Calcolo il carattere cifrato
+    li t4 97                    # a = 97 (ASCII)
+    add t3 t4 t3                # Riporto al carattere minuscolo
+    sb t3 0(s1)
+    addi t0 t0 1			    # Si incrementa il contatore del ciclo
+	addi s1 s1 1			    # Si aumenta l'indirizzo di s1 cosi da poter leggere il carattere seguente
+    j while_dictionary
+lowercase_check_dictionary:
+    li t2 96                    # Carattere precedente a ASCII
+    ble t1 t2 other_char_dictionary
+    li t2 122                   # z = 122 (ASCII)
+    sub t3 t2 t1                # Calcolo il carattere cifrato
+    li t4 65                    # A = 65 (ASCII)
+    add t3 t4 t3                # Riporto al carattere maiuscolo
+    sb t3 0(s1)
+    addi t0 t0 1			    # Si incrementa il contatore del ciclo
+	addi s1 s1 1			    # Si aumenta l'indirizzo di s1 cosi da poter leggere il carattere seguente
+    j while_dictionary
 end_while_dictionary:
     lw s1 0(sp)              # Reset indirizzo di s1
     addi sp sp 4
