@@ -1,8 +1,8 @@
 .data 
-myplaintext: .string "Mi piaccion0 'L3 pesche!"
-#L grande errore
+#myplaintext: .string "Lezz0 Unt0 P3nzola! Sg1occioLa'"
+myplaintext: .string "0123456789"
 blocKey: .string "A0 o0p!)"
-mycypher: .string "ABBA"
+mycypher: .string "ABBAEA"
 cyphertext: .string ""
 sostK: .word -15
 
@@ -51,7 +51,7 @@ D_WHILE_LOOP:
     li t2 67
   #  beq t1 t2 D_ALGORITHM_C      # Se t1 = C (67) applico algoritmo C
     li t2 68
-  #  beq t1 t2 D_ALGORITHM_D      # Se t1 = D (68) applico algoritmo D
+    beq t1 t2 D_ALGORITHM_D      # Se t1 = D (68) applico algoritmo D
     li t2 69
     beq t1 t2 D_ALGORITHM_E              # Se t1 = E (69) applico algoritmo E
 END_DECRYPT_WHILE_LOOP:
@@ -93,7 +93,7 @@ ALGORITHM_C:
 ALGORITHM_D:
     addi sp sp -4				# Si alloca spazio nella pila per salvare l'indice del ciclo
 	sw t0 0(sp)					# Si salva l'indice nella pila 
-
+    jal DIZIONARIO
     lw t0 0(sp)					# Si ripristina il valore dell'indice
 	addi sp sp 4				# Si ripristina il valore del puntatore della pila
 	addi t0 t0 1				# Indice++
@@ -159,8 +159,6 @@ D_ALGORITHM_E:
     j D_WHILE_LOOP
     
 DECRYPT_ALGORITHM_C:
-    j END
-DECRYPT_ALGORITHM_D:
     j END
     
 #Procedura che calcola la crittografia tramite il cifrario di Cesare ----------------------
@@ -348,9 +346,40 @@ negative_module_blocchi:
     lw s2 4(sp)             # Reset indirizzo s2
     addi sp sp 8
     jr ra
-    
+
+
+# DA FINIRE
 # Procedura che calcola a crittografia tramite l'algoritmo dizionario -----------------------------------------------
 DIZIONARIO:
+    addi sp sp -4                            # Alloco spazio nella pila per salvare s1
+    sw s1 0(sp)                              # Si salva il valore di s1 per poterlo ristabilire alla fine della procedura
+    li t0 0                                  # Contatore del ciclo
+while_dictionary:
+    lb t1 0(sp)                              # Carico il carattere da cifrare
+    beq t0 s4 end_while_dictionary           # Se t0 = lunghezzaMessaggio allora termino il ciclo
+    li t2 65				                 # A = 65 ASCII
+	bge t1 t2 uppercase_check_dictionary  	 # Se maggiore di 64 controllo che sia maiuscola o minuscola
+    li t2 48                                 # 0 = 48 ASCII
+    bge t1 t2 num_shift_dictionary   
+other_char_dictionary:
+    addi t0 t0 1			    # Si incrementa il contatore del ciclo
+	addi s1 s1 1			    # Si aumenta l'indirizzo di s1 cosi da poter leggere il carattere seguente
+    j while_dictionary
+num_shift_dictionary:
+    li t2 57                    # 9 = 57 ASCII
+    bgt t1 t2 other_char_dictionary
+    sub t3 t2 t1                # s1 = noveASCII - numPartenza
+    addi t3 t3 48               # riporto ai numeri ASCII
+    sb t3 0(s1)
+    j other_char_dictionary
+    
+    
+uppercase_check_dictionary:
+    
+end_while_dictionary:
+    lw s1 0(sp)              # Reset indirizzo di s1
+    addi sp sp 4
+    jr ra
     
 # Procedura che calcola la crittografia tramite inversione della stringa -------------------------------------------------
 INVERSIONE:
