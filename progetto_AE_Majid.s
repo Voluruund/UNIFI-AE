@@ -1,7 +1,7 @@
 .data 
-myplaintext: .string "QuEsta Str1ng4 e' dI pr'ova"
+myplaintext: .string "QuEsta Str1ng4 e' dI pr'0va"
 blocKey: .string "A0 o0p!)"
-mycypher: .string "C"
+mycypher: .string "ABCDE"
 cyphertext: .string ""
 sostK: .word -15
 
@@ -209,16 +209,16 @@ SHIFT_CESARE:
 	rem t6 t6 t3				# ---> cyptherChar = [(currentChar - 65) + sostK]%26 + 65
 	blt t6 zero negative_module
 	add t6 t6 a0
-	sb t6 0(s1)				# Si salva il carattere criptato in s2 (indirizzo della stringa contenente il messaggio criptato)
-	addi t1 t1 1			# Si incrementa il contatore del ciclo
-	addi s1 s1 1			# Si aumenta l'indirizzo di s1 cos? da poter leggere il carattere seguente
+	sb t6 0(s1)				    # Si salva il carattere criptato in s2 (indirizzo della stringa contenente il messaggio criptato)
+	addi t1 t1 1			    # Si incrementa il contatore del ciclo
+	addi s1 s1 1			    # Si aumenta l'indirizzo di s1 cos? da poter leggere il carattere seguente
 	jr ra
 negative_module:
 	addi t6 t6 26
 	add t6 t6 a0
-	sb t6 0(s1)				# Si salva il carattere criptato in s2 (indirizzo della stringa contenente il messaggio criptato)
-	addi t1 t1 1			# Si incrementa il contatore del ciclo
-	addi s1 s1 1			# Si aumenta l'indirizzo di s1 cos? da poter leggere il carattere seguente
+	sb t6 0(s1)				    # Si salva il carattere criptato in s2 (indirizzo della stringa contenente il messaggio criptato)
+	addi t1 t1 1			    # Si incrementa il contatore del ciclo
+	addi s1 s1 1			    # Si aumenta l'indirizzo di s1 cos? da poter leggere il carattere seguente
 	jr ra
 
 # Procedura per decriptare l'algoritmo del cifrario di Cesare ------------------------------------------
@@ -229,9 +229,9 @@ DECRYPT_ALGORITHM_A:
 	li t1 0				        # Contatore del While
 	li t3 26				    # Valore di calcolo del modulo [f(x) % 26 (Mod 26)]
 while_decrypt_cifrario_cesare:
-    lb t0 0(s1)				     # Si carica in t0 il primo carattere da cifrare
+    lb t0 0(s1)				             # Si carica in t0 il primo carattere da cifrare
 	beq t1 s4 decrypt_end_while_cifrario # Se t1 = s4 esco dal ciclo
-	li t2 64				     # @ = 64 ASCII (Carattere che precede 'A')
+	li t2 64				             # @ = 64 ASCII (Carattere che precede 'A')
 	bgt t0 t2 decrypt_uppercase_check  	 # Se maggiore di 64 controllo che sia maiuscola o minuscola
 decrypt_other_char:
     sb t0 0(s1)				   
@@ -263,9 +263,9 @@ DECRYPT_SHIFT_CESARE:
 	rem t6 t6 t3				# ---> cyptherChar = [(currentChar - 65) + sostK]%26 + 65
 	blt t6 zero decrypt_negative_module
 	add t6 t6 a0
-	sb t6 0(s1)				# Si salva il carattere criptato in s2 (indirizzo della stringa contenente il messaggio criptato)
-	addi t1 t1 1			# Si incrementa il contatore del ciclo
-	addi s1 s1 1			# Si aumenta l'indirizzo di s1 cos? da poter leggere il carattere seguente
+	sb t6 0(s1)				    # Si salva il carattere criptato in s2 (indirizzo della stringa contenente il messaggio criptato)
+	addi t1 t1 1			    # Si incrementa il contatore del ciclo
+	addi s1 s1 1			    # Si aumenta l'indirizzo di s1 cos? da poter leggere il carattere seguente
 	jr ra
 decrypt_negative_module:
 	addi t6 t6 26
@@ -354,89 +354,77 @@ negative_module_blocchi:
     
 # Procedura che calcola la crittografia tramite l'algoritmo ad occorrenze --------------------------------
 OCCORRENZE:
-    addi sp sp -12                           # Alloco la memoria necessaria a salvare l'indirizzo alla testa del messaggio
-    sw s1 0(sp)
-    sw s0 4(sp)                              # Salvo l'indirizzo alla testa del mycyphertext
-    sw ra 8(sp)				                 # Si salva il valore del return address in modo da non perderlo quando si chiamano altre procedure
-    li t0 0                                  # Indice del ciclo while
+   addi sp sp -12			# Si alloca spazio per la pila
+	sw s1 0(sp)				# Si salva l'indirizzo alla testa del messaggio
+	sw s0 4(sp)				# Si salva l'indirizzo di s0 che avrà lunghezza variabile dalla stringa iniziale
+	sw ra 8(sp)				# Si salva il valore di ra per non perderlo quando si chiamano altre procedure
+	li t0 0				    # t0 indice del ciclo while
 while_occorrenze:
-    beq t0 s4 end_while_occorrenze
-    lb t1 0(s1)                              # Carico in memoria il carattere da cifrare
-    li t6 31                                 # new line 
-    beq t1 t6 other_char_occorrenze
-    sb t1 0(s0)                              # Salvo il messaggio criptato
-    addi s0 s0 1                             # Incremento s0 in modo da inserire il carattere successivo
-    addi t2 t0 0                             # Indice del ciclo while interno (itera fino a s4)
+	beq t0 s4 end_outer_while_C		# se t0 = lunghezzaStringa finisce il ciclo
+	lb t1 0(s1)				        # t1 = carattereDaCifrare
+	li t6 31				        # t6 = unit separator  (ASCII)
+	beq t1 t6 other_char_occorrenze	# Se il currentChar == 31 saltiamo
+	sb t1 0(s0)				        # Si salva il messaggio criptato
+	addi s0 s0 1			        # Si incrementa s1 per passare al carattere successivo
+	addi t3 t0 0			        # t3 indice del ciclo while interno
 inner_while_occorrenze:
-    beq t2 s4 end_inner_while_occorrenze
-    lb t3 0(s1)                              # Carattere da comparare a quello da cifrare
-    beq t1 t3 write_occorrenza
-    addi t2 t2 1                             # Contatore ciclo interno ++
-    addi s1 s1 1                             # Passo al carattere successivo
-    j inner_while_occorrenze
+	beq t3 s4 end_inner_while_occorrenze		# Si itera per la lunghezza del messaggio
+	lb t2 0(s1)				        # t2 = carattereDaComparare
+	beq t1 t2 write_occorrenza		# Se i due caratteri sono uguali scrivo l'occorrenza
+	addi s1 s1 1			        # Altrimenti si incrementa s1 per leggere il carattere successivo
+	addi t3 t3 1			        # Inner while ++
+	j inner_while_occorrenze		
 write_occorrenza:
-    li t6 45                                 # - = 45 (ASCII)
-    sb t6 0(s0)                              # Salvo il carattere - nella nuova stringa criptata 
-    addi t2 t2 1                             # Contatore ciclo interno ++
-    li t6 9                                  # Controllo che la posizione del carattere da cifrare sia <10 in caso salto 
-    bgt t2 t6 write_occorrenza_doubledigit   
-    addi t3 t2 48                            # Riporto il valore dell'indice al rispettivo numero ASCII (+48 sulla tabella)
-    sb t3 1(s0)                              # Salvo il carattere nella posizione successiva all'interno della stringa criptata
-    li t6 31                                 # unit separator ASCII
-    sb t6 0(s1)                              # Salvo t6 nella posizione del carattere appena controllato così da saltarlo 
-    addi s1 s1 1                             # Passo al carattere successivo
-    addi s0 s0 2                             # Passo alla prossima posizione disponibile
-    j inner_while_occorrenze
+	li t6 45				        # t6 = - (ASCII)
+	sb t6 0(s0)				        # Carico t6 per dividere il carattere dall'occorrenza
+	addi t3 t3 1			        # Inner while ++
+	li t6 9				            # t6 = 9 in caso la posizione sia > 10 vado al doubleDigit
+	bgt t3 t6 write_occorrenza_doubledigit	
+	addi t4 t3 48			        # Riporto al carattere ASCII sommando 48
+	sb t4 1(s0)				        # Si salva il carattere nella stringa criptata in posizione successiva
+	li t6 31				        # t6 = Unit Separator (ASCII), i caratteri del messaggio vanno da 32 a 127
+	sb t6 0(s1)				        # Si salva t6 nella posizione del carattere appena controllato per poterlo saltare successivamente
+	addi s1 s1 1			        # Leggo il carattere successivo
+	addi s0 s0 2			        # Si incrementa s1 di 2 per passare al carattere successivo
+	j inner_while_occorrenze
 write_occorrenza_doubledigit:
-    li t6 10                                 # quozionte della divisione per dividere le doppie cifre
-    div t4 t2 t6                             # Divido per 10 
-    addi t4 t4 48                            # Riporto il valore dell'indice al rispettivo numero ASCII (+48 sulla tabella)
-    rem t5 t2 t6                             # Calcolo la seconda cifra della posizione data dall'occorrenza
-    addi t5 t5 48                            # Riporto il valore dell'indice al rispettivo numero ASCII (+48 sulla tabella)
-    sb t4 1(s0)
-    sb t5 2(s0)    
-    li t6 31                                 # unit separator ASCII
-    sb t6 0(s1)                              # Salvo t6 nella posizione del carattere appena controllato così da saltarlo 
-    addi s1 s1 1                             # Passo al carattere successivo
-    addi s0 s0 3                             # Passo alla prossima posizione disponibile
-    j inner_while_occorrenze
-other_char_occorrenze:
-    lw s1 0(sp)                              # Ripristino l'indirizzo di s1 per il ciclo esterno 
-    addi s1 s1 1                             # Passo al carattere successivo
-    sw s1 0(sp)                              # Aggiorno la stack
-    j while_occorrenze
+	li t6 10                        #t6 = 10 divisore
+	div t4 t3 t6			        # t4 = quoziente della divisione (PRIMA CIFRA)
+	addi t4 t4 48			        # Riporto al carattere ASCII sommando 48
+	rem t5 t3 t6			        # t5 = resto della divisione (SECONDA CIFRA)
+	addi t5 t5 48			        # Riporto al carattere ASCII sommando 48
+	sb t4 1(s0)				        # Si salva t4 nella stringa nella posizione successiva
+	sb t5 2(s0)				        # Si salva t5 nella stringa nella posizione successiva alla successiva
+	li t6 31				        # t6 = Unit Separator (ASCII), i caratteri del messaggio vanno da 32 a 127
+	sb t6 0(s1)				        # Si salva t6 nella posizione del carattere appena controllato per poterlo saltare successivamente
+	addi s1 s1 1			        # Leggo il carattere successivo
+	addi s0 s0 3			        # Incremento s0 di 3 per inserire il carattere successivo
+	j inner_while_occorrenze
 end_inner_while_occorrenze:
-    li t6 32                                 # ' ' = 32 (ASCII)
-    sb t6 0(s0)                              # Salvo il carattere spazio a fine ciclo cosi' da contare la prossima occorrenza
-    addi s0 s0 1                             # Carattere successivo
-    lw s1 0(sp)                              # ripristino il puntatore di s1 per iterare il prossimo ciclo esterno 
-    addi s1 s1 1                             # Passo al carattere successivo
-    sw s1 0(sp)                              # Aggiorno la pila
-    addi t0 t0 1                             # Contatore del ciclo while esterno ++
-    j while_occorrenze
-end_while_occorrenze:
-    li t6 0                                  # 0 = null (ASCII) fine stringa
-    sb t6 -1(s0)			                 # Si carica lo 0 di fine stringa nell'ultima posizione per eliminare lo spazio superfluo
-	lw s1 4(sp)				                 # Si ripristina l'indirizzo di s1
-    jal MYPLAINTEXT_SIZE                     # Ricalcolo la lunghezza della nuova stringa in chiaro
-    add s0 s1 s4			                 # Si aggiorna l'indirizzo di s0
-    addi s0 s0 1			                 # Finestringa
-    lw ra 8(sp)				                 # Si ripristina il valore di ra per uscire correttamente dalla procedura
-    addi sp sp 12                            # Ripristino puntatore alla testa della stack
-    jr ra
-
-
-
-
-
-
-
-
-
-
-
-
-
+	li t6 32				        # t6 = '' (ASCII)
+	sb t6 0(s0)				        # Inserisco uno spazio fra le occorrenze per dividerle
+	addi s0 s0 1			        # Incremento s0 di 1 per inserire il carattere successivo
+	lw s1 0(sp)				        # Si ripristina l'indirizzo di s1 per il ciclo esterno
+	addi s1 s1 1			        # Leggo il carattere successivo
+	sw s1 0(sp)				        # Aggiorno la stack
+	addi t0 t0 1			        # Ciclo esterno ++
+	j while_occorrenze
+other_char_occorrenze:
+	lw s1 0(sp)				        # Si ripristina l'indirizzo di s1 per il ciclo esterno
+	addi s1 s1 1			        # Leggo il carattere successivo
+	sw s1 0(sp)				        # Aggiorno la stack
+	addi t0 t0 1			        # Ciclo esterno ++
+	j while_occorrenze
+end_outer_while_C:
+	li t6 0				            # t6 = null (ASCII) fine stringa
+	sb t6 -1(s0)			        # Carico il fine stringa
+	lw s1 4(sp)				        # Ripristino l'indirizzo di s1
+	jal MYPLAINTEXT_SIZE			# Ricalcolo la lunghezza della stringa
+	add s0 s1 s4			        # Aggiorno s0 per puntare alla fine di s1
+	addi s0 s0 1			        # Spazio del fine stringa
+	lw ra 8(sp)				        # Si ripristina il valore di ra per uscire correttamente dalla procedura
+	addi sp sp 12			        # Si ripristina il puntatore alla testa della stack
+	jr ra
 
 # Procedura che calcola la decrittografia dell'algoritmo ad occorrenze ------------------------------------
 DECRYPT_ALGORITHM_C:
@@ -445,7 +433,7 @@ DECRYPT_ALGORITHM_C:
 	sw s0 4(sp)				# Si salva il valore di s0
 	sw ra 8(sp)				# Si salva il valore di ra
 while_reverse_C:
-	lb t1 0(s1)				# t1 = currentChar
+	lb t1 0(s1)				# t1 = carattereDaDecifrare
 check_position_reverse_C:
 	addi s1 s1 2			# Si incrementa s1 di 2 cosi da poter leggere l'occorrenza siccessiva
 	lb t2 0(s1)				# t2 = terzo carattere, che indica la posizione in cui inserire il carattere corrente
@@ -486,6 +474,7 @@ write_double_position_end_reverse_C:
 end_while_reverse_C:
 	lw s1 4(sp)				# Si ripristina il valore di s0, salvandolo pero in s1 (che punta il messaggio criptato)
 	jal MYPLAINTEXT_SIZE			# Chiama la procedura MYPLAINTEXT_LENGTH per calcolare la lunghezza del messaggio in chiaro
+	#add s6 zero a0			# Si salva il valore di ritorno contenuto in a0, in s6
 	add s0 s1 s4			# Aggiorniamo l'indirizzo di s0, nel caso dovessimo chiamare un'altra volta l'algoritmo C e avere bisogno di una stringa ancora piu lunga
 	addi s0 s0 1			# Aumentiamo di uno cosi da lasciare spazio per il carattere fine stringa tra messaggio criptato e stringa ausiliaria
 	lw ra 8(sp)				# Si ripristina il valore di ra
