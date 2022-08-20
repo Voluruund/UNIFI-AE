@@ -1,7 +1,7 @@
 .data 
-myplaintext: .string "QuEsta Str1ng4 e' dI pr'0va"
-blocKey: .string "A0 o0p!)"
-mycypher: .string "ABCDE"
+myplaintext: .string "QuEsta Str1ng4 e' dI prova"
+blocKey: .string "OLE"
+mycypher: .string "BCD"
 cyphertext: .string ""
 sostK: .word -15
 
