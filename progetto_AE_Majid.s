@@ -1,8 +1,8 @@
 .data 
-#myplaintext: .string "QuEsta Str1ng4 e' dI pr'ova"
-myplaintext: .string "Lorem Ipsum is simply dummy text of the printing and typesetting industry. Lorem Ipsum has been the industry's standard dummy text. "
+myplaintext: .string "QuEsta Str1ng4 e' dI pr'ova"
+#myplaintext: .string "Lorem Ipsum is simply dummy text of the printing and typesetting industry. Lorem Ipsum has been the industry's standard dummy text. "
 blocKey: .string "AB kvd7!"
-mycypher: .string "C"
+mycypher: .string "BCADE"
 cyphertext: .string ""
 sostK: .word -7
 
@@ -378,8 +378,8 @@ write_occorrenza:
 	li t6 45				        # t6 = - (ASCII)
 	sb t6 0(s0)				        # Carico t6 per dividere il carattere dall'occorrenza
 	addi t3 t3 1			        # Inner while ++
-    li t6 99
-    bgt t3 t6 write_occorrenza_tripledigit
+    li t6 100
+    bge t3 t6 write_occorrenza_tripledigit
 	li t6 9				            # t6 = 9 in caso la posizione sia > 10 vado al doubleDigit
 	bgt t3 t6 write_occorrenza_doubledigit	
 	addi t4 t3 48			        # Riporto al carattere ASCII sommando 48
@@ -410,7 +410,7 @@ write_occorrenza_tripledigit:
     rem a2 t3 t6
     div t4 a2 t5
     addi t4 t4 48                    # Riporto al carattere ASCII sommando 48
-    rem a3 a3 t5
+    rem a3 a2 t5
     addi a3 a3 48                    # Riporto al carattere ASCII sommando 48
     li t6 31                         # t6 = Unit Separator (ASCII), i caratteri del messaggio vanno da 32 a 127
     sb a1 1(s0)
@@ -471,13 +471,13 @@ check_position_reverse_occorrenze:
 	li t6 32
 	beq t5 t6 double_digit_next_char	# t5 = ' ' (ASCII), pos = doppia e occorrenze finite
 	li t6 0
-	beq t3 t6 double_digit_end_string	# Se t3 = null (ASCII), pos = doppia fine stringa
+	beq t5 t6 double_digit_end_string	# Se t5 = null (ASCII), pos = doppia fine stringa
     li t6 45						       # Se arriva qui t5 = numero e pos = tripla
-    beq a1 t6 triple_digit_occurrence	# Se t5 = - (ASCII), pos = doppia e nuova occorrenza
+    beq a1 t6 triple_digit_occurrence	# Se a1 = - (ASCII), pos = doppia e nuova occorrenza
 	li t6 32
-	beq a1 t6 triple_digit_next_char	# t5 = ' ' (ASCII), pos = doppia e occorrenze finite
+	beq a1 t6 triple_digit_next_char	# Se a1 = ' ' (ASCII), pos = doppia e occorrenze finite
 	li t6 0
-	beq a1 t6 triple_digit_end_string	# Se t3 = null (ASCII), pos = doppia fine stringa
+	beq a1 t6 triple_digit_end_string	# Se a1 = null (ASCII), pos = doppia fine stringa
 single_digit_occurrence:
 	jal ascii_to_int_reverse
 	j check_position_reverse_occorrenze
