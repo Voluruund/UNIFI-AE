@@ -1,7 +1,8 @@
 .data 
-myplaintext: .string "QuEsta Str1ng4 e' dI pr'ova"
+#myplaintext: .string "QuEsta Str1ng4 e' dI pr'ova"
+myplaintext: .string "Lorem Ipsum is simply dummy text of the printing and typesetting industry. Lorem Ipsum has been the industry's standard dummy text. "
 blocKey: .string "AB kvd7!"
-mycypher: .string "CCABED"
+mycypher: .string "C"
 cyphertext: .string ""
 sostK: .word -7
 
@@ -353,9 +354,9 @@ negative_module_blocchi:
     
 # Procedura che calcola la crittografia tramite l'algoritmo ad occorrenze --------------------------------
 OCCORRENZE:
-   addi sp sp -12			# Si alloca spazio per la pila
+    addi sp sp -12			# Si alloca spazio per la pila
 	sw s1 0(sp)				# Si salva l'indirizzo alla testa del messaggio
-	sw s0 4(sp)				# Si salva l'indirizzo di s0 che avrà lunghezza variabile dalla stringa iniziale
+	sw s0 4(sp)				# Si salva l'indirizzo di s0 che avr? lunghezza variabile dalla stringa iniziale
 	sw ra 8(sp)				# Si salva il valore di ra per non perderlo quando si chiamano altre procedure
 	li t0 0				    # t0 indice del ciclo while
 while_occorrenze:
@@ -377,6 +378,8 @@ write_occorrenza:
 	li t6 45				        # t6 = - (ASCII)
 	sb t6 0(s0)				        # Carico t6 per dividere il carattere dall'occorrenza
 	addi t3 t3 1			        # Inner while ++
+    li t6 99
+    bgt t3 t6 write_occorrenza_tripledigit
 	li t6 9				            # t6 = 9 in caso la posizione sia > 10 vado al doubleDigit
 	bgt t3 t6 write_occorrenza_doubledigit	
 	addi t4 t3 48			        # Riporto al carattere ASCII sommando 48
@@ -398,6 +401,24 @@ write_occorrenza_doubledigit:
 	sb t6 0(s1)				        # Si salva t6 nella posizione del carattere appena controllato per poterlo saltare successivamente
 	addi s1 s1 1			        # Leggo il carattere successivo
 	addi s0 s0 3			        # Incremento s0 di 3 per inserire il carattere successivo
+	j inner_while_occorrenze
+write_occorrenza_tripledigit:
+    li t6 100
+    div a1 t3 t6                 
+    addi a1 a1 48                   # Riporto al carattere ASCII sommando 48
+    li t5 10
+    rem a2 t3 t6
+    div t4 a2 t5
+    addi t4 t4 48                    # Riporto al carattere ASCII sommando 48
+    rem a3 a3 t5
+    addi a3 a3 48                    # Riporto al carattere ASCII sommando 48
+    li t6 31                         # t6 = Unit Separator (ASCII), i caratteri del messaggio vanno da 32 a 127
+    sb a1 1(s0)
+    sb t4 2(s0)
+    sb a3 3(s0)
+    sb t6 0(s1)                     # Si salva t6 nella posizione del carattere appena controllato per poterlo saltare successivamente
+    addi s1 s1 1			        # Leggo il carattere successivo
+	addi s0 s0 4			        # Incremento s0 di 4 per inserire il carattere successivo
 	j inner_while_occorrenze
 end_inner_while_occorrenze:
 	li t6 32				        # t6 = ' ' (ASCII)
@@ -434,22 +455,29 @@ DECRYPT_ALGORITHM_C:
 while_reverse_occorrenze:
 	lb t1 0(s1)				# t1 = carattereDaDecifrare
 check_position_reverse_occorrenze:
-	addi s1 s1 2			# Si incrementa s1 di 2 cosi da poter leggere l'occorrenza successiva
+	addi s1 s1 2			   # Si incrementa s1 di 2 cosi da poter leggere l'occorrenza successiva
 	lb t2 0(s1)				# t2 = terzo carattere, che indica la posizione in cui inserire il carattere corrente
 	lb t3 1(s1)				# t3 = quarto carattere, puo essere uno spazio, un trattino o un altro numero
-	lb t5 2(s1)				# t5 = quarto carattere, se t3 = numero, t5 puo essere uno spazio, un trattino o un altro numero
+	lb t5 2(s1)				# t5 = quinto carattere, se t3 = numero, t5 puo essere uno spazio, un trattino o un altro numero
+    lb a1 3(s1)             # a1 = sesto carattere, se e' un numero occorrenza a 3 cifre
 	li t6 45
 	beq t3 t6 single_digit_occurrence	# Se t3 = - (ASCII), pos = singola e nuova occorrenza
 	li t6 32
 	beq t3 t6 single_digit_next_char	# Se t3 = ' ' (ASCII), pos = singola e occorrenze finite
 	li t6 0
 	beq t3 t6 single_digit_end_string	# Se t3 = null (ASCII), pos = singola e fine stringa
-	li t6 45						    # Se arriva qui t3 = numero e pos = doppia
+	li t6 45						       # Se arriva qui t3 = numero e pos = doppia
 	beq t5 t6 double_digit_occurrence	# Se t5 = - (ASCII), pos = doppia e nuova occorrenza
 	li t6 32
 	beq t5 t6 double_digit_next_char	# t5 = ' ' (ASCII), pos = doppia e occorrenze finite
 	li t6 0
-	beq t5 t6 double_digit_end_string	# Se t3 = null (ASCII), pos = doppia fine stringa
+	beq t3 t6 double_digit_end_string	# Se t3 = null (ASCII), pos = doppia fine stringa
+    li t6 45						       # Se arriva qui t5 = numero e pos = tripla
+    beq a1 t6 triple_digit_occurrence	# Se t5 = - (ASCII), pos = doppia e nuova occorrenza
+	li t6 32
+	beq a1 t6 triple_digit_next_char	# t5 = ' ' (ASCII), pos = doppia e occorrenze finite
+	li t6 0
+	beq a1 t6 triple_digit_end_string	# Se t3 = null (ASCII), pos = doppia fine stringa
 single_digit_occurrence:
 	jal ascii_to_int_reverse
 	j check_position_reverse_occorrenze
@@ -473,17 +501,42 @@ double_digit_end_string:
 end_while_reverse_occorrenze:
 	lw s1 4(sp)				    # Si ripristina il valore di s0, salvandolo pero in s1 (che punta il messaggio criptato)
 	jal MYPLAINTEXT_SIZE	    # Ricalcolo la lunghezza della stringa
-	add s0 s1 s4			    # Aggiorniamo l'indirizzo di s0, in caso servauna stringa più lunga
+	add s0 s1 s4			    # Aggiorniamo l'indirizzo di s0, in caso servauna stringa pi? lunga
 	addi s0 s0 1			    # Aumentiamo di uno in modo da lasciare spazio per il carattere fine stringa e stringa ausiliaria
 	lw ra 8(sp)				    # Si ripristina il valore di ra
-	jr ra				
+	jr ra
+triple_digit_occurrence:
+    jal triple_ascii_to_int_reverse
+	addi s1 s1 2			            # Si aumenta s1 di un byte per leggere l'occorrenza successiva
+	j check_position_reverse_occorrenze
+triple_digit_next_char:
+    jal triple_ascii_to_int_reverse
+	addi s1 s1 4			            # Si aumenta s1 di 3 byte per leggere il carattere successivo
+	j while_reverse_occorrenze
+triple_digit_end_string:
+    jal triple_ascii_to_int_reverse
+    j end_while_reverse_occorrenze
+triple_ascii_to_int_reverse:
+    addi t2 t2 -48			    # Riporto il carattere da ASCII ad intero
+	addi t3 t3 -48			    # Riporto il carattere da ASCII ad intero 
+    addi t5 t5 -49              # Riporto il carattere da ASCII ad intero (-1 posizioni partono da 0)
+    li t6 100
+    mul t2 t2 t6
+    li t6 10
+    mul t3 t3 t6
+    add t2 t2 t3
+    add t2 t2 t5
+    add s0 s0 t2
+    sb t1 0(s0)				    # Si salva il carattere corrente in s0
+	lw s0 4(sp)				    # Si rispristina l'indirizzo di s0 cosi da poter inserire correttamente i caratteri succesivi
+	jr ra
 double_ascii_to_int_reverse:
 	addi t2 t2 -48			    # Riporto il carattere da ASCII ad intero
 	addi t3 t3 -49			    # Riporto il carattere da ASCII ad intero (-1 posizioni partono da 0)
 	li t6 10
-	mul t2 t2 t6			    # Calcolo la parte decimale
-	add t4 t2 t3			    # Posizione finale
-	add s0 s0 t4			    # Si incrementa s0 di t2, ovvero la posizione indicata dall'occorrenza
+	mul t2 t2 t6			        # Calcolo la parte decimale
+	add t4 t2 t3			        # Posizione finale
+	add s0 s0 t4			        # Si incrementa s0 di t2, ovvero la posizione indicata dall'occorrenza
 	sb t1 0(s0)				    # Si salva il carattere corrente in s0
 	lw s0 4(sp)				    # Si rispristina l'indirizzo di s0 cosi da poter inserire correttamente i caratteri succesivi
 	jr ra
